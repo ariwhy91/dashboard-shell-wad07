@@ -77,3 +77,99 @@ document.querySelector("#btn-greet-unsafe").addEventListener("click", () => {
 document.querySelector("#btn-greet-safe").addEventListener("click", () => {
   greetingOutput.textContent = "Hello, " + visitorNameInput.value + "!";
 });
+
+//session 4
+async function fetchUsers() {
+  const response = await fetch("https://jsonplaceholder.typicode.com/users");
+  const users = await response.json();
+  console.log(users);
+  return users;
+}
+
+const stateLoading = document.querySelector("#state-loading");
+const stateEmpty = document.querySelector("#state-empty");
+const stateError = document.querySelector("#state-error");
+const userList = document.querySelector("#user-list");
+
+function showState(state) {
+  stateLoading.hidden = state !== "loading";
+  stateEmpty.hidden = state !== "empty";
+  stateError.hidden = state !== "error";
+  userList.hidden = state !== "success";
+}
+
+function renderUsers(data) {
+  userList.textContent = "";
+  data.forEach((user) => {
+    const li = document.createElement("li");
+    li.textContent = user.name + "_" + user.email;
+    userList.appendChild(li);
+  });
+}
+async function loadUsers(query = "") {
+  showState("loading");
+  try {
+    const url =
+      "https://jsonplaceholder.typicode.com/users" +
+      (query ? "?username=" + encodeURIComponent(query) : "");
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error("HTTP status: " + response.status);
+    }
+    const data = await response.json();
+    if (data.length === 0) {
+      showState("empty");
+      return;
+    }
+    renderUsers(data);
+    showState("success");
+  } catch (error) {
+    console.error("failed to load data:", error);
+    showState("error");
+  }
+}
+
+document.querySelector("#btn-load-users").addEventListener("click", () => {
+  loadUsers();
+});
+
+document
+  .querySelector("#search-username")
+  .addEventListener("input", (event) => {
+    loadUsers(event.target.value.trim());
+  });
+
+async function loadUserbroken() {
+  showState("loading");
+  try {
+    const response = await fetch(
+      "https://jsonplaceholder.typicode.com/no-such-user",
+    );
+    if (!response.ok) {
+      throw new Error("HTTP status: " + response.status);
+    }
+    const data = await response.json();
+    renderUsers(data);
+    showState("success");
+  } catch (error) {
+    console.error("failed to load data:", error);
+    showState("error");
+  }
+}
+
+document.querySelector("#btn-simulate-error").addEventListener("click", () => {
+  loadUserbroken();
+});
+
+document.querySelector("#btn-cors-demo").addEventListener("click", async () => {
+  showState("loading");
+  try {
+    const response = await fetch("https://www.google.com");
+    constdata = await response.text();
+    console.log(data);
+    showState("success");
+  } catch (error) {
+    console.error("Failed (likely CORS)", error);
+    showState("error");
+  }
+});
